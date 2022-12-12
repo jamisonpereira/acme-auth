@@ -59,19 +59,20 @@ User.authenticate = async ({ username, password }) => {
       username,
     },
   });
-  console.log('Authenticate | user.password: ', user.password);
-  console.log('Authenticate | password: ', password);
+  // console.log('Authenticate | user.password: ', user.password);
+  // console.log('Authenticate | password: ', password);
+
   const passwordValid = await bcrypt.compare(password, user.password);
 
-  console.log('PASSWORDVALID: ', passwordValid);
+  // console.log('PASSWORDVALID: ', passwordValid);
   if (passwordValid) {
-    console.log('User.id: ', user.id);
-    console.log('User.username: ', user.username);
+    // console.log('User.id: ', user.id);
+    // console.log('User.username: ', user.username);
     const token = jwt.sign(
       { id: user.id, username: user.username },
       SECRET_KEY
     );
-    console.log('TOKEN: ', token);
+    // console.log('TOKEN: ', token);
     return token;
   }
   const error = Error('bad credentials');

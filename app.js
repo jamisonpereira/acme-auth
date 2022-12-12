@@ -11,6 +11,18 @@ require('dotenv').config();
 // middleware
 app.use(express.json());
 
+const requireToken = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization;
+    const user = await User.byToken(token);
+    req.user = user;
+    // console.log('REQ.USER: ', req.user);
+    next();
+  } catch (err) {
+    next(err);
+  }
+};
+
 // routes
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
@@ -23,33 +35,31 @@ app.post('/api/auth', async (req, res, next) => {
   }
 });
 
-app.get('/api/users/:id/notes', async (req, res, next) => {
-  const verifyUser = await User.byToken(req.headers.authorization);
-  console.log('VERIFYUSER ID: ', verifyUser.id);
-  console.log('req.params.id: ', +req.params.id);
-  if (verifyUser.id === +req.params.id) {
+app.get('/api/auth', requireToken, async (req, res, next) => {
+  try {
+    res.send(req.user);
+  } catch (ex) {
+    next(ex);
+  }
+});
+
+app.get('/api/users/:id/notes', requireToken, async (req, res, next) => {
+  // const verifyUser = await User.byToken(req.headers.authorization);
+  // console.log('VERIFYUSER ID: ', verifyUser.id);
+  // console.log('req.params.id: ', +req.params.id);
+  if (req.user.id === +req.params.id) {
     try {
-      console.log('ENTERED API');
       const notes = await Note.findAll({
         where: {
-          userId: req.params.id,
+          userId: req.user.id,
         },
       });
-      console.log('NOTES FROM API: ', notes);
       res.send(notes);
     } catch (err) {
       next(err);
     }
   } else {
     res.status(401).send('bad credentials');
-  }
-});
-
-app.get('/api/auth', async (req, res, next) => {
-  try {
-    res.send(await User.byToken(req.headers.authorization));
-  } catch (ex) {
-    next(ex);
   }
 });
 
