@@ -4,6 +4,8 @@ const {
   models: { User },
 } = require('./db');
 const path = require('path');
+const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
 // middleware
 app.use(express.json());

@@ -1,4 +1,9 @@
 const Sequelize = require('sequelize');
+const jwt = require('jsonwebtoken');
+require('dotenv').config();
+
+const SECRET_KEY = process.env.JWT;
+
 const { STRING } = Sequelize;
 const config = {
   logging: false,
@@ -18,19 +23,23 @@ const User = conn.define('user', {
 });
 
 User.byToken = async (token) => {
-  try {
-    const user = await User.findByPk(token);
-    if (user) {
-      return user;
-    }
-    const error = Error('bad credentials');
-    error.status = 401;
-    throw error;
-  } catch (ex) {
-    const error = Error('bad credentials');
-    error.status = 401;
-    throw error;
-  }
+  // try {
+  // const user = await User.findByPk(token);
+  const verifyUser = jwt.verify(token, SECRET_KEY);
+  console.log('VERIFYUSER: ', verifyUser);
+  return verifyUser;
+  //   if (verifyUser) {
+  //     console.log('Passed if in byToken method');
+  //     return verifyUser;
+  //   }
+  //   const error = Error('bad credentials');
+  //   error.status = 401;
+  //   throw error;
+  // } catch (ex) {
+  //   const error = Error('bad credentials');
+  //   error.status = 401;
+  //   throw error;
+  // }
 };
 
 User.authenticate = async ({ username, password }) => {
@@ -41,7 +50,14 @@ User.authenticate = async ({ username, password }) => {
     },
   });
   if (user) {
-    return user.id;
+    console.log('User.id: ', user.id);
+    console.log('User.username: ', user.username);
+    const token = jwt.sign(
+      { id: user.id, username: user.username },
+      SECRET_KEY
+    );
+    console.log('TOKEN: ', token);
+    return token;
   }
   const error = Error('bad credentials');
   error.status = 401;
